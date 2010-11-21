@@ -16,10 +16,10 @@ public class SengokuEasy {
 
 	public static void main (String... args) throws Exception {
 		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.DEBUG);
+		Logger.getRootLogger().setLevel(Level.INFO);
 		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.ERROR);
 		Logger.getLogger("org.apache.http").setLevel(Level.ERROR);
-		Logger.getLogger("nexi.sengoku.easy.Auth").setLevel(Level.ERROR);
+		Logger.getLogger("nexi.sengoku.easy.Auth").setLevel(Level.WARN);
 
 		Properties properties = new Properties();
 		properties.load(new FileReader(new File("sengoku.properties")));

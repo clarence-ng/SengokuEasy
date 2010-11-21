@@ -50,7 +50,7 @@ public class Auth {
 				page = loginToYahoo();
 				success = true;
 			} catch(IOException e) {
-				logger.info("Failed to login to yahoo. Retrying", e);
+				logger.warn("Failed to login to yahoo. Retrying", e);
 			}
 		}
 

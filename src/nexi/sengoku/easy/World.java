@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
 
+import nexi.sengoku.easy.Resources.Wood;
+
 import org.apache.log4j.Logger;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
@@ -19,20 +21,23 @@ public class World {
 
 	private volatile Context context;
 
-	private volatile Resource wood;
-	private volatile Resource woodMax;
-	private volatile Resource cloth;
-	private volatile Resource clothMax;
-	private volatile Resource iron;
-	private volatile Resource ironMax;
-	private volatile Resource wheat;
-	private volatile Resource wheatMax;
+	private volatile long wood;
+	private volatile long woodMax;
+	private volatile long cloth;
+	private volatile long clothMax;
+	private volatile long iron;
+	private volatile long ironMax;
+	private volatile long wheat;
+	private volatile long wheatMax;
 
 	public World(int world, String worldsPageString) {
 		this.world = world;
 		this.worldsPageString = worldsPageString;
 	}
 
+	public String getBaseUrl() {
+		return String.format("http://w%03d.sengokuixa.jp", world);
+	}
 	public void load() throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		WebClient webClient = Client.newWebClient();
 
@@ -42,10 +47,22 @@ public class World {
 
 		WebClient villageClient = Client.newWebClient(webClient.getCookieManager());
 
-		page = (HtmlPage) villageClient.getPage(String.format("http://w%03d.sengokuixa.jp/village.php", world));
-		logger.debug(page.asText());
+		page = (HtmlPage) villageClient.getPage(getBaseUrl() + "/village.php");
+		logger.debug(page.asXml());
+		
+		wood = Long.parseLong(page.getElementById("wood").getNodeValue());
+		woodMax = Long.parseLong(page.getElementById("wood_max").getNodeValue());
+		cloth = Long.parseLong(page.getElementById("cloth").getNodeValue());
+		clothMax = Long.parseLong(page.getElementById("cloth_max").getNodeValue());
+		iron = Long.parseLong(page.getElementById("iron").getNodeValue());
+		ironMax = Long.parseLong(page.getElementById("iron_max").getNodeValue());
+		wheat = Long.parseLong(page.getElementById("wheat").getNodeValue());
+		wheatMax = Long.parseLong(page.getElementById("wheat_max").getNodeValue());
+		
+		page = (HtmlPage) villageClient.getPage(getBaseUrl() + "/facility/unit_status.php?dmo=all");
+		logger.info(page.asXml());
 	}
-
+	
 	public List<General> getGenerals() {
 		return null;
 	}
