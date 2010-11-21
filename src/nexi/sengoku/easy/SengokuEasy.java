@@ -2,8 +2,6 @@ package nexi.sengoku.easy;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.log4j.BasicConfigurator;
@@ -24,7 +22,7 @@ public class SengokuEasy {
 	public static void main (String... args) throws Exception {
 
 		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.INFO);
+		Logger.getRootLogger().setLevel(Level.DEBUG);
 		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.ERROR);
 		Logger.getLogger("org.apache.http").setLevel(Level.ERROR);
 		Logger.getLogger(World.class).setLevel(Level.DEBUG);
@@ -32,6 +30,7 @@ public class SengokuEasy {
 
 		Properties properties = new Properties();
 		properties.load(new FileReader(new File("sengoku.properties")));
+		properties.load(new FileReader(new File("private.properties")));
 
 		String baseUrl = "http://world.sengokuixa.jp/world/select_world.php?p=6%2B2HYllM1poiwqM76me%2BLrnOvbWE%2B3eiecNWXtwLh5ly0mIYxpKn92YeTWybhr7ewuB5dzkvi0Z5ikUIqtf0u3l%2BSeze35Hf6hLbYzo47qEUq9EQcWjnwRmy4ZXzYeHcMk4NlGIwCLg%3D&cd=e524583492838ed12c5c4b176b2b8c61&ts=1290383469&ch=YGID_";
 
@@ -43,11 +42,14 @@ public class SengokuEasy {
 			logger.info("logging in to world server");
 			HtmlPage worldsPage = page.getAnchorByText("ゲームスタート").click();
 			baseUrl = worldsPage.getUrl().toString();
-			logger.info("logged in to world server. Base Url:" + baseUrl);
+			logger.info("logged in to world server. Base Url " + baseUrl);
 		}
 
-		World world9 = new World(9, baseUrl);
-		world9.load();
+		World loginWorld = new World(
+				Integer.parseInt((String)properties.get("loginWorld")),
+				baseUrl
+		);		
+		loginWorld.load();
 	}
 
 	public static void debug(HtmlElement element, int tabs, Logger logger) {
