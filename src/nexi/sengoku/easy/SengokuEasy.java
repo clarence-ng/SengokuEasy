@@ -15,7 +15,7 @@ public class SengokuEasy {
 	private static final Logger logger = Logger.getLogger(SengokuEasy.class);
 
 	public static void main (String... args) throws Exception {
-		logger.info("Lawrence testing checkin");
+		
 		BasicConfigurator.configure();
 		Logger.getRootLogger().setLevel(Level.INFO);
 		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.ERROR);
@@ -30,7 +30,7 @@ public class SengokuEasy {
 		logger.info("logged in to yahoo");
 
 		logger.info("logging in to world server");
-		HtmlPage worldsPage = page.getAnchorByText("���`�ॹ���`��").click();
+		HtmlPage worldsPage = page.getAnchorByText("ゲームスタート").click();
 		logger.info("logged in to world server");
 		
 		World world9 = new World(9, worldsPage.getUrl().toString());
