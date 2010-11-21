@@ -44,8 +44,8 @@ public class Auth {
 		HtmlForm form = page.getFormByName("login_form");
 
 		// Enter login and passwd
-		form.getInputByName("login").setValueAttribute("vazjrsengoku");
-		form.getInputByName("passwd").setValueAttribute("psistorm");
+		form.getInputByName("login").setValueAttribute("name");
+		form.getInputByName("passwd").setValueAttribute("pw");
 
 		// Click "Sign In" button/link
 		HtmlInput b = (HtmlInput) page.getElementById(".save");
