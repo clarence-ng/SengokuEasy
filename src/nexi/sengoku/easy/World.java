@@ -50,14 +50,14 @@ public class World {
 		page = (HtmlPage) villageClient.getPage(getBaseUrl() + "/village.php");
 		logger.debug(page.asXml());
 		
-		wood = Long.parseLong(page.getElementById("wood").getNodeValue());
-		woodMax = Long.parseLong(page.getElementById("wood_max").getNodeValue());
-		cloth = Long.parseLong(page.getElementById("cloth").getNodeValue());
-		clothMax = Long.parseLong(page.getElementById("cloth_max").getNodeValue());
-		iron = Long.parseLong(page.getElementById("iron").getNodeValue());
-		ironMax = Long.parseLong(page.getElementById("iron_max").getNodeValue());
-		wheat = Long.parseLong(page.getElementById("wheat").getNodeValue());
-		wheatMax = Long.parseLong(page.getElementById("wheat_max").getNodeValue());
+		wood = Long.parseLong(page.getElementById("wood").getTextContent());
+		woodMax = Long.parseLong(page.getElementById("wood_max").getTextContent());
+		cloth = Long.parseLong(page.getElementById("stone").getTextContent());
+		clothMax = Long.parseLong(page.getElementById("stone_max").getTextContent());
+		iron = Long.parseLong(page.getElementById("iron").getTextContent());
+		ironMax = Long.parseLong(page.getElementById("iron_max").getTextContent());
+		wheat = Long.parseLong(page.getElementById("rice").getTextContent());
+		wheatMax = Long.parseLong(page.getElementById("rice_max").getTextContent());
 		
 		page = (HtmlPage) villageClient.getPage(getBaseUrl() + "/facility/unit_status.php?dmo=all");
 		logger.info(page.asXml());
