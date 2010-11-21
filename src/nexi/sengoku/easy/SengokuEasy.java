@@ -1,5 +1,9 @@
 package nexi.sengoku.easy;
 
+import java.io.File;
+import java.io.FileReader;
+import java.util.Properties;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -17,8 +21,11 @@ public class SengokuEasy {
 		Logger.getLogger("org.apache.http").setLevel(Level.ERROR);
 		Logger.getLogger("nexi.sengoku.easy.Auth").setLevel(Level.ERROR);
 
+		Properties properties = new Properties();
+		properties.load(new FileReader(new File("sengoku.properties")));
+		
 		logger.info("logging in to yahoo");
-		HtmlPage page = new Auth().loginToYahooWithRetry();
+		HtmlPage page = new Auth(properties).loginToYahooWithRetry();
 		logger.info("logged in to yahoo");
 
 		logger.info("logging in to world server");
