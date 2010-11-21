@@ -11,6 +11,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlMap;
 public class VillageMap {
 	private static final Logger logger = Logger.getLogger(SengokuEasy.class);
 	
+	// All maps are 8 by 8, unusable blocks padded with barren land
 	private static final int X_SIZE = 8;
 	private static final int Y_SIZE = 8;
 	private static VillageMapTile [][] tiles = new VillageMapTile [X_SIZE][Y_SIZE];
@@ -61,7 +62,7 @@ public class VillageMap {
 			);
 		for (int x = 0; x < X_SIZE; x ++){
 			formatter.format("\n" +
-					"%2s %20s %20s %20s %20s %20s %20s %20s",
+					"%2s%20s%20s%20s%20s%20s%20s%20s",
 					x,
 					tiles[0][x].toString(),
      				tiles[1][x].toString(),
