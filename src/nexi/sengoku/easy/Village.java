@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import org.apache.log4j.Logger;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class Village {
@@ -20,7 +19,7 @@ public class Village {
 	}
 
 	public void load() throws FailingHttpStatusCodeException, MalformedURLException, IOException {	
-		HtmlPage page = (HtmlPage) context.webClient.getPage(String.format("http://w%03d.sengokuixa.jp/village.php", context.world));
+		HtmlPage page = (HtmlPage) context.getPage(String.format("http://w%03d.sengokuixa.jp/village.php", context.world));
 		logger.debug(page.asText());
 	}
 

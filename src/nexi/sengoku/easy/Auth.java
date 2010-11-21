@@ -13,16 +13,15 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 public class Auth {
 
 	private static final Logger logger = Logger.getLogger(Auth.class);
-	
+
 	private final Properties properties;
-	
+
 	public Auth(Properties properties) {
 		this.properties = properties;
 	}
 
 	public final HtmlPage loginToYahoo() throws IOException {
 		WebClient webClient = Client.newWebClient();
-		// visit Yahoo Mail login page and get the Form object
 		HtmlPage page = (HtmlPage) webClient.getPage("http://sengokuixa.jp/index.php?event=OAuth");
 
 		logger.debug(page.asText());
@@ -30,8 +29,8 @@ public class Auth {
 		HtmlForm form = page.getFormByName("login_form");
 
 		// Enter login and passwd
-		form.getInputByName("login").setValueAttribute(properties.getProperty("yahooLogin"));
-		form.getInputByName("passwd").setValueAttribute(properties.getProperty("yahooPassword"));
+		form.getInputByName("login").setValueAttribute(properties.getProperty("yahooLogin").trim());
+		form.getInputByName("passwd").setValueAttribute(properties.getProperty("yahooPassword").trim());
 
 		// Click "Sign In" button/link
 		HtmlInput b = (HtmlInput) page.getElementById(".save");
@@ -48,8 +47,9 @@ public class Auth {
 		while (!success) {
 			try {
 				page = loginToYahoo();
+				page.getAnchorByText("ゲームスタート");
 				success = true;
-			} catch(IOException e) {
+			} catch(Exception e) {
 				logger.warn("Failed to login to yahoo. Retrying", e);
 			}
 		}
