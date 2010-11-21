@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlMap;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class World {
@@ -38,7 +39,8 @@ public class World {
 	public String getBaseUrl() {
 		return String.format("http://w%03d.sengokuixa.jp", world);
 	}
-	public void load() throws FailingHttpStatusCodeException, MalformedURLException, IOException {
+	
+	public void load() throws FailingHttpStatusCodeException, MalformedURLException, IOException, WeAreBrokenException {
 		WebClient webClient = Client.newWebClient();
 
 		logger.debug(String.format("%s&wd=w%03d", worldsPageString, world));
@@ -57,10 +59,14 @@ public class World {
 		iron = Long.parseLong(page.getElementById("iron").getTextContent());
 		ironMax = Long.parseLong(page.getElementById("iron_max").getTextContent());
 		wheat = Long.parseLong(page.getElementById("rice").getTextContent());
-		wheatMax = Long.parseLong(page.getElementById("rice_max").getTextContent());
+		wheatMax = Long.parseLong(page.getElementById("rice_max").getTextContent());		
+
+		HtmlMap mapOverlayMap = (HtmlMap)page.getElementById("mapOverlayMap");		
+		VillageMap map = VillageMap.createVillageMapFromHtmlMapElement(mapOverlayMap);
+		map.displayVillageMap();
 		
 		page = (HtmlPage) villageClient.getPage(getBaseUrl() + "/facility/unit_status.php?dmo=all");
-		logger.info(page.asXml());
+//		logger.info(page.asXml());
 	}
 	
 	public List<General> getGenerals() {
@@ -75,7 +81,7 @@ public class World {
 		return null;
 	}
 	
-	public Map getMap() {
+	public VillageMap getVillageMap() {
 		return null;
 	}
 }
