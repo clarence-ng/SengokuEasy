@@ -56,7 +56,6 @@ public class SengokuEasy {
 
 		Context context = new Context(loginWorld, webClient, properties);
 
-		//9 - 783806
 		DoMissionTask doMission = new DoMissionTask(context, 18190, Mission.SeaOfForest);
 		taskExecutor.submit(doMission);
 	}
