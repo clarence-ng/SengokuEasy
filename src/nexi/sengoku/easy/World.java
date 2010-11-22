@@ -16,8 +16,7 @@ public class World {
 
 	private final String baseUrl;
 	private final int id;
-
-	private volatile Context context;
+	private final WebClient webClient;
 
 	private volatile long wood;
 	private volatile long woodMax;
@@ -28,21 +27,30 @@ public class World {
 	private volatile long wheat;
 	private volatile long wheatMax;
 
-	public World(int world, String worldsPageString) {
+	public World(int world, String worldsPageString, WebClient webClient) {
 		this.id = world;
 		this.baseUrl = worldsPageString;
+		this.webClient = webClient;
 	}
 
 	public String getBaseUrl() {
 		return String.format("http://w%03d.sengokuixa.jp", id);
 	}
 	
-	public void load() throws FailingHttpStatusCodeException, MalformedURLException, IOException, WeAreBrokenException {
-		WebClient webClient = Client.newWebClient();
-
+	public WebClient getWebClient() {
+		return webClient;
+	}
+	
+	public boolean load() throws FailingHttpStatusCodeException, MalformedURLException, IOException, WeAreBrokenException {
+		
 		logger.debug(String.format("%s&wd=w%03d", baseUrl, id));
 		HtmlPage page = (HtmlPage) webClient.getPage(String.format("%s&wd=w%03d", baseUrl, id));
 		logger.debug(webClient.getCookieManager().getCookies());
+
+		//check if page load succeed in a hacky way.
+		if (page.getElementById("wood") == null) {
+			return false;
+		}
 		
 		wood = Long.parseLong(page.getElementById("wood").getTextContent());
 		woodMax = Long.parseLong(page.getElementById("wood_max").getTextContent());
@@ -55,8 +63,9 @@ public class World {
 
 		HtmlMap mapOverlayMap = (HtmlMap)page.getElementById("mapOverlayMap");		
 		VillageMap map = VillageMap.createVillageMapFromHtmlMapElement(mapOverlayMap);
-		map.displayVillageMap();
+		map.displayVillageMap();	
 		
+		return true;
 	}
 	
 	public List<General> getGenerals() {

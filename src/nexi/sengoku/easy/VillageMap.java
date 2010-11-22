@@ -9,7 +9,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlMap;
 
 public class VillageMap {
-	private static final Logger logger = Logger.getLogger(SengokuEasy.class);
+	private static final Logger logger = Logger.getLogger(VillageMap.class);
 	
 	// All maps are 8 by 8, unusable blocks padded with barren land
 	private static final int X_SIZE = 8;

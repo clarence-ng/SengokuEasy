@@ -2,12 +2,18 @@ package nexi.sengoku.easy;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
+import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
@@ -15,6 +21,7 @@ public class SengokuEasy {
 
 	private static final Logger logger = Logger.getLogger(SengokuEasy.class);
 
+	public static final String propertiesFilePath = "sengoku.properties";
 	/**
 	 * @param args
 	 * @throws Exception
@@ -22,36 +29,40 @@ public class SengokuEasy {
 	public static void main (String... args) throws Exception {
 
 		BasicConfigurator.configure();
-		Logger.getRootLogger().setLevel(Level.DEBUG);
+		Logger.getRootLogger().setLevel(Level.INFO);
 		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.ERROR);
 		Logger.getLogger("org.apache.http").setLevel(Level.ERROR);
-		Logger.getLogger(World.class).setLevel(Level.DEBUG);
-		Logger.getLogger(DoMissionTask.class).setLevel(Level.DEBUG);
-
-		Properties properties = new Properties();
-		properties.load(new FileReader(new File("sengoku.properties")));
 		
-		String baseUrl = null;
-		if (properties.containsKey("baseUrl")) {
-			logger.info("using baseUrl from properties " + properties.getProperty("baseUrl").trim());
-			baseUrl = properties.getProperty("baseUrl").trim();
-		}
-		if (baseUrl == null) {
-			logger.info("logging in to yahoo");
-			HtmlPage page = new Auth(properties).loginToYahooWithRetry();
-			logger.info("logged in to yahoo");
+		File propertiesFile = new File(propertiesFilePath);
+		Properties properties = new Properties();
+		properties.load(new FileReader(propertiesFile));
 
-			logger.info("logging in to world server");
-			HtmlPage worldsPage = page.getAnchorByText("ゲームスタート").click();
-			baseUrl = worldsPage.getUrl().toString();
-			logger.info("logged in to world server. Base Url " + baseUrl);
+		Auth auth = new Auth(properties);
+		String baseUrl = auth.login();
+
+		WebClient webClient = Client.newWebClient();
+
+		World loginWorld = null;
+		boolean worldSuccess = false;
+		while (!worldSuccess) {
+			loginWorld = new World(
+					Integer.parseInt(properties.getProperty("loginWorld")),
+					baseUrl,
+					webClient
+			);		
+			worldSuccess = loginWorld.load();
+			if (!worldSuccess) {
+				logger.info("Couldn't log in to world. Trying from fresh session");
+				baseUrl = auth.loginAndSaveSession();
+			}
 		}
 
-		World loginWorld = new World(
-				Integer.parseInt(properties.getProperty("loginWorld")),
-				baseUrl
-		);		
-		loginWorld.load();
+		ExecutorService taskExecutor = Executors.newCachedThreadPool();
+
+		Context context = new Context(loginWorld, webClient, properties);
+		DoMissionTask doMission = new DoMissionTask(context, 18190, Mission.SeaOfForest);
+
+		taskExecutor.submit(doMission);
 	}
 
 	public static void debug(HtmlElement element, int tabs, Logger logger) {
@@ -59,7 +70,7 @@ public class SengokuEasy {
 		for (int i = 0; i < tabs; i++) {
 			builder.append("\t"); 
 		}
-		logger.debug(builder.toString() + "e:" + element.getId() 
+		logger.debug(builder.toString() + "id:" + element.getId() 
 				+ " type " + element.getClass().getSimpleName() 
 				+ " class " + element.getAttribute("class"));
 		for (HtmlElement child : element.getChildElements()) {	

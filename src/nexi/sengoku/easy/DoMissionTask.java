@@ -20,13 +20,13 @@ public class DoMissionTask extends AbstractTask {
 
 	private static final Logger logger = Logger.getLogger(DoMissionTask.class);
 
-	private final long minimumHp;
 	private final long villageId;
+	private final Mission mission;
 
-	public DoMissionTask(Context context, long minimumHp, long villageId) {
+	public DoMissionTask(Context context, long villageId, Mission mission) {
 		super(context);
-		this.minimumHp = minimumHp;
 		this.villageId = villageId;
+		this.mission = mission;
 	}
 
 	@Override
@@ -84,6 +84,26 @@ public class DoMissionTask extends AbstractTask {
 				} 
 			}
 			logger.debug(teams);
+
+			long minHp = Long.parseLong(context.properties.getProperty("minMissionHp").trim());
+
+			for (Map.Entry<String, HtmlRadioButtonInput> goableTeam : teamGoButtons.entrySet()) {
+				boolean allHealthy = true;
+				for (General general: teams.get(goableTeam.getKey())) {
+					if (general.getHp() < minHp) {
+						allHealthy = false;
+						break;
+					}
+				}
+				if (allHealthy) {
+					//All generals are healthy, send them for mission!
+					logger.info("Sending team " + goableTeam.getKey() 
+							+ " to mission " + mission
+							+ " team " + teams.get(goableTeam.getKey()));
+					missionbuttons.get(mission.missionId).click();
+					goableTeam.getValue().click();
+				}
+			}
 		} catch(Exception e) {
 			logger.error("Error executing doMission", e);
 		}
