@@ -30,14 +30,16 @@ public class SengokuEasy {
 
 		Properties properties = new Properties();
 		properties.load(new FileReader(new File("sengoku.properties")));
-		properties.load(new FileReader(new File("private.properties")));
-
-		String baseUrl = "http://world.sengokuixa.jp/world/select_world.php?p=6%2B2HYllM1poiwqM76me%2BLrnOvbWE%2B3eiecNWXtwLh5ly0mIYxpKn92YeTWybhr7ewuB5dzkvi0Z5ikUIqtf0u3l%2BSeze35Hf6hLbYzo47qEUq9EQcWjnwRmy4ZXzYeHcMk4NlGIwCLg%3D&cd=e524583492838ed12c5c4b176b2b8c61&ts=1290383469&ch=YGID_";
-
+		
+		String baseUrl = null;
+		if (properties.containsKey("baseUrl")) {
+			logger.info("using baseUrl from properties " + properties.getProperty("baseUrl").trim());
+			baseUrl = properties.getProperty("baseUrl").trim();
+		}
 		if (baseUrl == null) {
 			logger.info("logging in to yahoo");
 			HtmlPage page = new Auth(properties).loginToYahooWithRetry();
-			logger.info("logged in to yahoo" + page.asText());
+			logger.info("logged in to yahoo");
 
 			logger.info("logging in to world server");
 			HtmlPage worldsPage = page.getAnchorByText("ゲームスタート").click();
@@ -46,7 +48,7 @@ public class SengokuEasy {
 		}
 
 		World loginWorld = new World(
-				Integer.parseInt((String)properties.get("loginWorld")),
+				Integer.parseInt(properties.getProperty("loginWorld")),
 				baseUrl
 		);		
 		loginWorld.load();

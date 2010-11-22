@@ -55,7 +55,7 @@ public class Structure {
 		// Structure text should be in this format - 木工所 LV.5
 		// First split the structure name and the level
 		
-		Pattern p = Pattern.compile("(.*?)LV.([0-9])");  // Is there lv 10?
+		Pattern p = Pattern.compile("(.*?)LV.(1??[0-9])");
 		Matcher m = p.matcher(structureText);
 		
 		if(m.matches()){
