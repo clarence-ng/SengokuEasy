@@ -3,9 +3,11 @@ package nexi.sengoku.easy;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlMap;
@@ -27,6 +29,28 @@ public class World {
 	private volatile long wheat;
 	private volatile long wheatMax;
 
+	public static World loadNewWorld(Auth auth, WebClient webClient, Properties properties) throws ElementNotFoundException, IOException, FailingHttpStatusCodeException, WeAreBrokenException {
+		World world = null;
+		
+		String baseUrl = auth.login();
+		
+		boolean worldSuccess = false;
+		while (!worldSuccess) {
+			world = new World(
+					Integer.parseInt(properties.getProperty("loginWorld")),
+					baseUrl,
+					webClient
+			);		
+			worldSuccess = world.load();
+			if (!worldSuccess) {
+				logger.info("Couldn't log in to world. Trying from fresh session");
+				baseUrl = auth.loginAndSaveSession();
+			}
+		}
+		
+		return world;
+	}
+	
 	public World(int world, String worldsPageString, WebClient webClient) {
 		this.id = world;
 		this.baseUrl = worldsPageString;

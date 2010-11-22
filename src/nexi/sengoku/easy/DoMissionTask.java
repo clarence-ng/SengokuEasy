@@ -102,6 +102,8 @@ public class DoMissionTask extends AbstractTask {
 							+ " team " + teams.get(goableTeam.getKey()));
 					missionbuttons.get(mission.missionId).click();
 					goableTeam.getValue().click();
+					
+					break; //can submit only 1 form at a time !
 				}
 			}
 		} catch(Exception e) {

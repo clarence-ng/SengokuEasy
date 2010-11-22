@@ -2,8 +2,6 @@ package nexi.sengoku.easy;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,10 +10,8 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class SengokuEasy {
 
@@ -38,25 +34,10 @@ public class SengokuEasy {
 		properties.load(new FileReader(propertiesFile));
 
 		Auth auth = new Auth(properties);
-		String baseUrl = auth.login();
-
 		WebClient webClient = Client.newWebClient();
-
-		World loginWorld = null;
-		boolean worldSuccess = false;
-		while (!worldSuccess) {
-			loginWorld = new World(
-					Integer.parseInt(properties.getProperty("loginWorld")),
-					baseUrl,
-					webClient
-			);		
-			worldSuccess = loginWorld.load();
-			if (!worldSuccess) {
-				logger.info("Couldn't log in to world. Trying from fresh session");
-				baseUrl = auth.loginAndSaveSession();
-			}
-		}
-
+		
+		World loginWorld = World.loadNewWorld(auth, webClient, properties);
+		
 		ExecutorService taskExecutor = Executors.newCachedThreadPool();
 
 		Context context = new Context(loginWorld, webClient, properties);
