@@ -2,6 +2,7 @@ package nexi.sengoku.easy;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -29,11 +30,14 @@ public class World {
 	private volatile long wheat;
 	private volatile long wheatMax;
 
+	private final List<Village> villages = new ArrayList<Village>();
+	private final List<General> generals = new ArrayList<General>();
+
 	public static World loadNewWorld(Auth auth, WebClient webClient, Properties properties) throws ElementNotFoundException, IOException, FailingHttpStatusCodeException, WeAreBrokenException {
 		World world = null;
-		
+
 		String baseUrl = auth.login();
-		
+
 		boolean worldSuccess = false;
 		while (!worldSuccess) {
 			world = new World(
@@ -47,10 +51,10 @@ public class World {
 				baseUrl = auth.loginAndSaveSession();
 			}
 		}
-		
+
 		return world;
 	}
-	
+
 	public World(int world, String worldsPageString, WebClient webClient) {
 		this.id = world;
 		this.baseUrl = worldsPageString;
@@ -60,13 +64,13 @@ public class World {
 	public String getBaseUrl() {
 		return String.format("http://w%03d.sengokuixa.jp", id);
 	}
-	
+
 	public WebClient getWebClient() {
 		return webClient;
 	}
-	
+
 	public boolean load() throws FailingHttpStatusCodeException, MalformedURLException, IOException, WeAreBrokenException {
-		
+
 		logger.debug(String.format("%s&wd=w%03d", baseUrl, id));
 		HtmlPage page = (HtmlPage) webClient.getPage(String.format("%s&wd=w%03d", baseUrl, id));
 		logger.debug(webClient.getCookieManager().getCookies());
@@ -75,7 +79,7 @@ public class World {
 		if (page.getElementById("wood") == null) {
 			return false;
 		}
-		
+
 		wood = Long.parseLong(page.getElementById("wood").getTextContent());
 		woodMax = Long.parseLong(page.getElementById("wood_max").getTextContent());
 		cloth = Long.parseLong(page.getElementById("stone").getTextContent());
@@ -88,22 +92,22 @@ public class World {
 		HtmlMap mapOverlayMap = (HtmlMap)page.getElementById("mapOverlayMap");		
 		VillageMap map = VillageMap.createVillageMapFromHtmlMapElement(mapOverlayMap);
 		map.displayVillageMap();	
-		
+
 		return true;
 	}
-	
+
 	public List<General> getGenerals() {
-		return null;
+		return generals;
 	}
 
 	public List<Village> getVillages() {
-		return null;
+		return villages;
 	}
-	
+
 	public GeneralMarket getGeneralMarket() {
 		return null;
 	}
-	
+
 	public VillageMap getVillageMap() {
 		return null;
 	}

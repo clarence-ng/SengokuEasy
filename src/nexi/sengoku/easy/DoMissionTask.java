@@ -8,7 +8,10 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.gargoylesoftware.htmlunit.ConfirmHandler;
+import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -83,6 +86,8 @@ public class DoMissionTask extends AbstractTask {
 					teams.put(teamName, generals);
 				} 
 			}
+			
+			HtmlDivision buttonDiv = form.getFirstByXPath("//div[@class='btnarea']");
 			logger.debug(teams);
 
 			long minHp = Long.parseLong(context.properties.getProperty("minMissionHp").trim());
@@ -102,8 +107,18 @@ public class DoMissionTask extends AbstractTask {
 							+ " team " + teams.get(goableTeam.getKey()));
 					missionbuttons.get(mission.missionId).click();
 					goableTeam.getValue().click();
+
+					context.webClient.setConfirmHandler(new ConfirmHandler() {
+						@Override
+						public boolean handleConfirm(Page arg0, String arg1) {
+							logger.info("Confirmed sending.");
+							return true;
+						}
+					});
 					
-					break; //can submit only 1 form at a time !
+					((HtmlAnchor) buttonDiv.getChildElements().iterator().next()).click();
+					
+					context.webClient.waitForBackgroundJavaScript(2500L);
 				}
 			}
 		} catch(Exception e) {
