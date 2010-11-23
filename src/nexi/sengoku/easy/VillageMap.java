@@ -77,4 +77,7 @@ public class VillageMap {
 		logger.info(formatter.toString());
 	}
 	
+	public VillageMapTile getTile (int x, int y){
+		return tiles [x][y];
+	}
 }

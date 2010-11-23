@@ -104,8 +104,8 @@ public class Structure {
 		return this.level;
 	}
 	
-	public void setLevel(int level){
-		this.level = level;
+	public void upgrade(){
+		this.level++;
 	}
 	
 }

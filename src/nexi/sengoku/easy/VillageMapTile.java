@@ -7,6 +7,9 @@ public class VillageMapTile {
 	
 	public VillageMapTile (String structureText, String onClickLink) throws WeAreBrokenException{
 		this.structure = new Structure (structureText);
+		if (onClickLink.equals("#")){
+			onClickLink = "village.php#";
+		}
 		this.onClickLink = onClickLink;
 	}
 
