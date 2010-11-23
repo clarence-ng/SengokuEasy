@@ -4,22 +4,20 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.kohsuke.args4j.Option;
 
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlDivision;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlMap;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class World {
 	private static final Logger logger = Logger.getLogger(World.class);
-
-	private final String baseUrl;
-	private final int id;
-	private final WebClient webClient;
 
 	private volatile long wood;
 	private volatile long woodMax;
@@ -33,47 +31,33 @@ public class World {
 	private final List<Village> villages = new ArrayList<Village>();
 	private final List<General> generals = new ArrayList<General>();
 
-	public static World loadNewWorld(Auth auth, WebClient webClient, Properties properties) throws ElementNotFoundException, IOException, FailingHttpStatusCodeException, WeAreBrokenException {
-		World world = null;
+	@Option(name="-w", required=true)
+	private int id;
+	public void setId(int id) {
+		this.id = id;
+	}
 
-		String baseUrl = auth.login();
-
+	public int getId() {
+		return id;
+	}
+	
+	public void load(Context context) throws ElementNotFoundException, IOException, FailingHttpStatusCodeException, WeAreBrokenException {
+		String worldSelectUrl = context.getLoginUrl();
 		boolean worldSuccess = false;
 		while (!worldSuccess) {
-			world = new World(
-					Integer.parseInt(properties.getProperty("loginWorld")),
-					baseUrl,
-					webClient
-			);		
-			worldSuccess = world.load();
+			worldSuccess = internalLoad(context, worldSelectUrl);
 			if (!worldSuccess) {
 				logger.info("Couldn't log in to world. Trying from fresh session");
-				baseUrl = auth.loginAndSaveSession();
+				worldSelectUrl = context.newLoginUrl();
 			}
 		}
-
-		return world;
 	}
 
-	public World(int world, String worldsPageString, WebClient webClient) {
-		this.id = world;
-		this.baseUrl = worldsPageString;
-		this.webClient = webClient;
-	}
+	private boolean internalLoad(Context context, String worldSelectUrl) throws FailingHttpStatusCodeException, MalformedURLException, IOException, WeAreBrokenException {
 
-	public String getBaseUrl() {
-		return String.format("http://w%03d.sengokuixa.jp", id);
-	}
-
-	public WebClient getWebClient() {
-		return webClient;
-	}
-
-	public boolean load() throws FailingHttpStatusCodeException, MalformedURLException, IOException, WeAreBrokenException {
-
-		logger.debug(String.format("%s&wd=w%03d", baseUrl, id));
-		HtmlPage page = (HtmlPage) webClient.getPage(String.format("%s&wd=w%03d", baseUrl, id));
-		logger.debug(webClient.getCookieManager().getCookies());
+		logger.debug(String.format("%s&wd=w%03d", context.getBaseUrl(), context.worldId));
+		HtmlPage page = (HtmlPage) context.getPage(String.format("%s&wd=w%03d", worldSelectUrl, context.worldId));
+		logger.debug(context.webClient.getCookieManager().getCookies());
 
 		//check if page load succeed in a hacky way.
 		if (page.getElementById("wood") == null) {
@@ -89,11 +73,40 @@ public class World {
 		wheat = Long.parseLong(page.getElementById("rice").getTextContent());
 		wheatMax = Long.parseLong(page.getElementById("rice_max").getTextContent());		
 
+		updateVillageIds(page);
+
 		HtmlMap mapOverlayMap = (HtmlMap)page.getElementById("mapOverlayMap");		
 		VillageMap map = VillageMap.createVillageMapFromHtmlMapElement(mapOverlayMap);
 		map.displayVillageMap();	
 
 		return true;
+	}
+
+	public void updateVillageIds(HtmlPage page) throws IOException {
+		HtmlAnchor otherVillage = parseVillageIds(page);
+		if (otherVillage != null) {
+			HtmlPage otherPage = otherVillage.click();
+			parseVillageIds(otherPage);
+		}
+	}
+
+	private HtmlAnchor parseVillageIds(HtmlPage page) {
+		HtmlAnchor someVillage = null;
+
+		HtmlDivision villagesDiv = (HtmlDivision)page.getFirstByXPath("//div[@class='sideBoxInner basename']");
+		for (HtmlElement anchor : villagesDiv.getElementsByTagName("a")) {
+			String[] query = ((HtmlAnchor) anchor).getHrefAttribute().split("\\?");
+			String[] params = query[1].split("&");
+			for (int i = 0; i < params.length; i++) {
+				String[] arg = params[i].split("=");
+				if (arg.length >= 2 && arg[0].equals("village_id")) {
+					logger.info(arg[1]);
+					someVillage = (HtmlAnchor) anchor;
+				}
+			}
+		}
+
+		return someVillage;
 	}
 
 	public List<General> getGenerals() {

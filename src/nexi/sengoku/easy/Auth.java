@@ -73,7 +73,7 @@ public class Auth {
 		return worldsPage;
 	}
 	
-	public String login() throws ElementNotFoundException, IOException {
+	public String login() throws IOException {
 		String baseUrl = null;
 		if (properties.containsKey("baseUrl")) {
 			logger.info("using baseUrl from properties " + properties.getProperty("baseUrl").trim());
@@ -84,7 +84,7 @@ public class Auth {
 		return baseUrl;
 	} 
 	
-	public String loginAndSaveSession() throws ElementNotFoundException, IOException {
+	public String loginAndSaveSession() throws IOException {
 		HtmlPage sengokuPage = loginToYahoo(properties);
 		HtmlPage worldsPage = loginToSengoku(sengokuPage);
 		

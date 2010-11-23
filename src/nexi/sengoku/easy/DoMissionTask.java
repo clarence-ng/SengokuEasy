@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.Option;
 
 import com.gargoylesoftware.htmlunit.ConfirmHandler;
 import com.gargoylesoftware.htmlunit.Page;
@@ -32,10 +34,32 @@ public class DoMissionTask extends AbstractTask {
 		this.mission = mission;
 	}
 
+	public static final class Args {
+		@Option(name="-v", required=true)
+		public long villageId;
+		@Option(name="-r")
+		public boolean repeat;
+		@Option(name="-m", required=true)
+		public void setMission(long missionId) throws CmdLineException {
+			if (missionId == 1) {
+				mission = Mission.Valley;
+			} else if (missionId == 2) {
+				mission = Mission.SeaOfForest;
+			} else if (missionId == 3) {
+				mission = Mission.CliffTemple;
+			} else if (missionId == 4) {
+				mission = Mission.SpringOfLongevity;
+			} else {
+				throw new CmdLineException("Invalid missionId. Must be 1-4");
+			}
+		}
+		public Mission mission;
+	}
+	
 	@Override
 	public void run() {
 		try {
-			HtmlPage p = (HtmlPage) context.getPage(context.world.getBaseUrl() 
+			HtmlPage p = (HtmlPage) context.getPage(context.getBaseUrl()
 					+ String.format("/village_change.php?village_id=%d&from=menu&page=/facility/dungeon.php", villageId));
 
 			HtmlForm form = (HtmlForm) p.getElementById("dungeon_input_form");
@@ -121,6 +145,8 @@ public class DoMissionTask extends AbstractTask {
 					context.webClient.waitForBackgroundJavaScript(2500L);
 				}
 			}
+			
+			logger.info("Did not send anyone. Threshold:" + minHp + " Teams:" + teams);
 		} catch(Exception e) {
 			logger.error("Error executing doMission", e);
 		}

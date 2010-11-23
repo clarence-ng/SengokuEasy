@@ -22,5 +22,6 @@
 	<classpathentry kind="lib" path="C:/workplace/lib/htmlunit-2.8/lib/xercesImpl-2.9.1.jar"/>
 	<classpathentry kind="lib" path="C:/workplace/lib/htmlunit-2.8/lib/xml-apis-1.3.04.jar"/>
 	<classpathentry kind="lib" path="C:/workplace/lib/apache-log4j-1.2.16/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="C:/workplace/lib/args4j-2.0.10/args4j-2.0.10.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

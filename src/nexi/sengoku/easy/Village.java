@@ -19,8 +19,7 @@ public class Village {
 	}
 
 	public void load() throws FailingHttpStatusCodeException, MalformedURLException, IOException {	
-		HtmlPage page = (HtmlPage) context.getPage(String.format("http://w%03d.sengokuixa.jp/village.php", context.world));
-		logger.debug(page.asText());
+
 	}
 
 }
