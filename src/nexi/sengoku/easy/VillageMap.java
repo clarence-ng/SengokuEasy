@@ -14,9 +14,11 @@ public class VillageMap {
 	// All maps are 8 by 8, unusable blocks padded with barren land
 	private static final int X_SIZE = 8;
 	private static final int Y_SIZE = 8;
-	private static VillageMapTile [][] tiles = new VillageMapTile [X_SIZE][Y_SIZE];
+	private VillageMapTile [][] tiles;
 	
-	private VillageMap (){};
+	private VillageMap (){
+		tiles = new VillageMapTile [X_SIZE][Y_SIZE];
+	};
 	
 	public static VillageMap createVillageMapFromHtmlMapElement (HtmlMap mapElement) throws WeAreBrokenException{
 		VillageMap instance = new VillageMap();
@@ -29,7 +31,7 @@ public class VillageMap {
 			HtmlArea areaElement = (HtmlArea) element;
 			String onClickLink = areaElement.getHrefAttribute();
 			String structureName = areaElement.getAltAttribute();			
-			tiles[curr_x_index][curr_y_index] = new VillageMapTile (structureName,onClickLink);
+			instance.tiles[curr_x_index][curr_y_index] = new VillageMapTile (structureName,onClickLink);
 
 			logger.debug ("X,Y = " + curr_x_index + "," + curr_y_index + " " + structureName);
 			curr_y_index --;
