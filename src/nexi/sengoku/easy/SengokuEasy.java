@@ -5,10 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.BasicConfigurator;
@@ -28,12 +26,10 @@ public class SengokuEasy {
 
 	public static final String propertiesFilePath = "sengoku.properties";
 
-	public final Map<String, ?extends CmdHandler> handlers = new ConcurrentHashMap<String, CmdHandler>();
-
 	private final Auth auth;
 	private final WebClient webClient;
 	private final Properties properties;
-
+	private World world;
 	private volatile Context context;
 
 	public static void main (String... args) throws Exception {
@@ -50,7 +46,7 @@ public class SengokuEasy {
 		File propertiesFile = new File(propertiesFilePath);
 		properties = new Properties();
 		properties.load(new FileReader(propertiesFile));
-
+		
 		auth = new Auth(properties);
 		webClient = Client.newWebClient();
 	}
@@ -85,7 +81,7 @@ public class SengokuEasy {
 				} else if (command.equalsIgnoreCase("exit")) {
 					System.exit(0);
 				} else if (command.equalsIgnoreCase("go")) {
-					World world = new World();
+					world = World.getInstance();
 					parseBean(world, remainingArgs);
 					context = new Context(world.getId(), auth, webClient, properties);
 					world.load(context);
@@ -101,7 +97,30 @@ public class SengokuEasy {
 					} else {
 						dm.run();
 					}
-				} else {
+				}
+				else if (command.equalsIgnoreCase("ug")) {
+					DoUpgradeTask.Args commandArgs = new DoUpgradeTask.Args();
+					parseBean(commandArgs, remainingArgs);
+					DoUpgradeTask du = new DoUpgradeTask(context,
+							world.getVillageFromIndex(commandArgs.villageIndex)
+								.getVillageMap().getTile(commandArgs.x, commandArgs.y),
+							world.getVillageIdFromIndex(commandArgs.villageIndex)
+						);
+					du.run();
+				} 
+				else if (command.equalsIgnoreCase("lv")) {
+					world.listVillages();
+				} 
+				else if (command.equalsIgnoreCase("pv")) {
+					World.Args commandArgs = new World.Args();
+					parseBean(commandArgs, remainingArgs);
+					logger.info("Index = " + commandArgs.villageIndex);
+					world.getVillageFromIndex(commandArgs.villageIndex).displayVillageMap();
+				} 
+				else if (command.equalsIgnoreCase("pr")){
+					world.printResource();
+				}
+				else {
 					System.out.println("unknown command.");
 					help();
 				}
@@ -129,6 +148,10 @@ public class SengokuEasy {
 		sb.append("exit :exit program\n");
 		sb.append("go :goes to the world. Must be called prior to calling other commands. [e.g. go -w 1]\n");
 		sb.append("dm :looks at mission page and sends team to mission. [e.g. dm -hp 81 -r]\n");
+		sb.append("pr :prints resource on screen. [e.g. pv]\n");
+		sb.append("lv :list the villages you have. [e.g. lv]\n");
+		sb.append("pv :prints map of a specified village. [e.g. pv -index 0]\n");
+		sb.append("ug :upgrades a building. [e.g. ug -index -0 -x 1 -y 1]\n");
 		System.out.println(sb.toString());
 	}
 
