@@ -7,11 +7,13 @@ public enum StructureType {
 	// Home bases
 	HOME_BASE,
 	SUB_BASE,
+	VILLAGE,
 	
 	// Utility/Research structures
 	UNIVERSITY,
 	MARKET,
-	// TODO: TEMPLE, CHURCH
+	TEMPLE,
+	CHURCH,
 	
 	// Production structures
 	WOOD_FACTORY,
@@ -34,5 +36,8 @@ public enum StructureType {
 	WOOD,
 	COTTON,
 	IRON,
-	BARREN_LAND;
+	BARREN_LAND,
+	POOL,
+	
+	UNKNOWN;
 }

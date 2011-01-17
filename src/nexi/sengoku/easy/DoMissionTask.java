@@ -84,8 +84,7 @@ public class DoMissionTask extends AbstractTask<Boolean> {
 					+ String.format("/village_change.php?village_id=%s&from=menu&page=/facility/dungeon.php", villageId));
 
 			HtmlForm form = (HtmlForm) p.getElementById("dungeon_input_form");
-			SengokuEasy.debug(form, 0, logger);
-
+			
 			Map<Integer, HtmlRadioButtonInput> missionbuttons = new HashMap<Integer, HtmlRadioButtonInput>();
 			int m = 0;
 			for (HtmlElement e : form.getElementById("dungeon_list_body").getChildElements()) {

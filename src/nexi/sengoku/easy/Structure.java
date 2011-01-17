@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 public class Structure {
-	private static final Logger logger = Logger.getLogger(World.class);
+	private static final Logger logger = Logger.getLogger(Structure.class);
 	private final StructureType structureType;
 	private int level = -1;
 	private static Map <String, StructureType> structureNameToTypeMap 
@@ -18,12 +18,14 @@ public class Structure {
 		// Home bases
 		structureNameToTypeMap.put("本丸", StructureType.HOME_BASE);
 		structureNameToTypeMap.put("砦", StructureType.SUB_BASE);
-		// TODO: VILLAGE
+		structureNameToTypeMap.put("村落", StructureType.VILLAGE);
 		
 		// Utility/Research structures
 		structureNameToTypeMap.put("学舎", StructureType.UNIVERSITY);
 		structureNameToTypeMap.put("市", StructureType.MARKET);
-		// TODO: TEMPLE, CHURCH
+		structureNameToTypeMap.put("寺", StructureType.TEMPLE);
+		
+		// TODO: CHURCH
 		
 		// Production structures
 		structureNameToTypeMap.put("木工所", StructureType.WOOD_FACTORY);
@@ -48,6 +50,7 @@ public class Structure {
 		structureNameToTypeMap.put("鉄鉱山", StructureType.IRON);
 		structureNameToTypeMap.put("荒地", StructureType.BARREN_LAND);
 		structureNameToTypeMap.put("平地", StructureType.EMPTY_FIELD);
+		structureNameToTypeMap.put("池", StructureType.POOL);
 	}
 	
 	public Structure (String structureText) throws WeAreBrokenException {
@@ -104,8 +107,8 @@ public class Structure {
 		return this.level;
 	}
 	
-	public void setLevel(int level){
-		this.level = level;
+	public void upgrade(){
+		this.level++;
 	}
 	
 }

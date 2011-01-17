@@ -5,11 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,19 +16,14 @@ import nexi.sengoku.easy.Context.MasterContext;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import org.kohsuke.args4j.CmdLineParser;
 
 public class SengokuEasy {
 
 	private static final Logger logger = Logger.getLogger(SengokuEasy.class);
 
 	public static final String propertiesFilePath = "sengoku.properties";
-
-	public final Map<String, ?extends CmdHandler> handlers = new ConcurrentHashMap<String, CmdHandler>();
 
 	private final Properties properties;
 
@@ -45,12 +37,10 @@ public class SengokuEasy {
 	private final ExecutorService exeuctor = Executors.newCachedThreadPool();
 
 	public static void main (String... args) throws Exception {
-
 		BasicConfigurator.configure();
 		Logger.getRootLogger().setLevel(Level.INFO);
 		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.ERROR);
 		Logger.getLogger("org.apache.http").setLevel(Level.ERROR);
-
 		new SengokuEasy().run(args);
 	}
 
@@ -118,25 +108,27 @@ public class SengokuEasy {
 						try {
 							Thread.sleep(1000 * 60 * 3);
 						} catch (InterruptedException e) {
+
+						}
+
+						if (arg.reportStatus) {
+							exeuctor.execute(new Runnable() {
+								@Override
+								public void run() {
+									Context context = masterContext.get().newContext(15L);
+									try {
+										new StatusTask(context).call();
+									} catch (Exception e) {
+									} finally {
+										context.webClient.closeAllWindows();
+									}
+								}
+							});
 						}
 					}
 				}
 			});
 
-			if (arg.reportStatus) {
-				exeuctor.execute(new Runnable() {
-					@Override
-					public void run() {
-						Context context = masterContext.get().newContext(15L);
-						try {
-							new StatusTask(context).call();
-						} catch (Exception e) {
-						} finally {
-							context.webClient.closeAllWindows();
-						}
-					}
-				});
-			}
 		} else if (args[0].contains("enemy")) {
 			EnemyArgs arg = new EnemyArgs();
 			arg.world = 15;
@@ -152,21 +144,6 @@ public class SengokuEasy {
 			CmdLineParser p = new CmdLineParser(taskArgs);
 			p.parseArgument(args);	
 			new WarReportTask(taskArgs.world).call();
-		}
-	}
-
-	public static void debug(HtmlElement element, int tabs, Logger logger) {
-		if (logger.isDebugEnabled()) {
-			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < tabs; i++) {
-				builder.append("\t"); 
-			}
-			logger.debug(builder.toString() + "id:" + element.getId() 
-					+ " type " + element.getClass().getSimpleName() 
-					+ " class " + element.getAttribute("class"));
-			for (HtmlElement child : element.getChildElements()) {	
-				debug(child, tabs+1, logger);
-			}
 		}
 	}
 
@@ -196,6 +173,7 @@ public class SengokuEasy {
 		@Option(name="-debug")
 		boolean debug = false;
 	}
+
 	private class EnemyArgs {
 		@Option(name="-enemy", required=true)
 		boolean enemy;
@@ -208,7 +186,7 @@ public class SengokuEasy {
 		@Option(name="-mx", required=true)
 		String mainCoordinates;
 	}
-	
+
 	private class WarArgs {
 		@Option(name="-w", required=true)
 		long world;
