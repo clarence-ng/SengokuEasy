@@ -1,6 +1,8 @@
 package nexi.sengoku.easy;
 
-public abstract class AbstractTask implements Runnable {
+import java.util.concurrent.Callable;
+
+public abstract class AbstractTask<T> implements Callable<T> {
 
 	protected final Context context;
 	

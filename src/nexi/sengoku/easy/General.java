@@ -49,10 +49,11 @@ public class General {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("General [hp=");
-		builder.append(hp);
-		builder.append(", name=");
+		builder.append("General ");
+		builder.append("[name=");
 		builder.append(name);
+		builder.append(", hp=");
+		builder.append(hp);
 		builder.append("]");
 		return builder.toString();
 	}

@@ -1,28 +1,35 @@
 package nexi.sengoku.easy;
 
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+
 public class Resources {
 
-	public static final class Wood extends Resource {
+	public final long wood;
+	public final long cotton;
+	public final long iron;
+	public final long wheat;
 
+	public Resources (HtmlPage page) {
+		wood = Long.parseLong(page.getElementById("wood").getTextContent());
+		cotton = Long.parseLong(page.getElementById("stone").getTextContent());
+		iron = Long.parseLong(page.getElementById("iron").getTextContent());
+		wheat = Long.parseLong(page.getElementById("rice").getTextContent());
 	}
 
-	public static final class Cotton extends Resource {
-
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Resources ");
+		builder.append("[wood=");
+		builder.append(wood);
+		builder.append(", cotton=");
+		builder.append(cotton);
+		builder.append(", iron=");
+		builder.append(iron);
+		builder.append(", wheat=");
+		builder.append(wheat);
+		builder.append("]");
+		return builder.toString();
 	}
 
-	public static final class Iron extends Resource {
-
-	}
-
-	public static final class Wheat extends Resource {
-
-	}
-	
-	public static final class Coin extends Resource {
-
-	}
-	
-	public static final class Gold extends Resource {
-
-	}
 }

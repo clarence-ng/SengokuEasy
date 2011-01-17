@@ -1,9 +1,10 @@
 package nexi.sengoku.easy;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.kohsuke.args4j.Option;
@@ -28,42 +29,21 @@ public class World {
 	private volatile long wheat;
 	private volatile long wheatMax;
 
-	private final List<Village> villages = new ArrayList<Village>();
 	private final List<General> generals = new ArrayList<General>();
 
 	@Option(name="-w", required=true)
-	private int id;
-	public void setId(int id) {
+	private long id;
+	public void setId(long id) {
 		this.id = id;
 	}
 
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 	
 	public void load(Context context) throws ElementNotFoundException, IOException, FailingHttpStatusCodeException, WeAreBrokenException {
-		String worldSelectUrl = context.getLoginUrl();
-		boolean worldSuccess = false;
-		while (!worldSuccess) {
-			worldSuccess = internalLoad(context, worldSelectUrl);
-			if (!worldSuccess) {
-				logger.info("Couldn't log in to world. Trying from fresh session");
-				worldSelectUrl = context.newLoginUrl();
-			}
-		}
-	}
-
-	private boolean internalLoad(Context context, String worldSelectUrl) throws FailingHttpStatusCodeException, MalformedURLException, IOException, WeAreBrokenException {
-
-		logger.debug(String.format("%s&wd=w%03d", context.getBaseUrl(), context.worldId));
-		HtmlPage page = (HtmlPage) context.getPage(String.format("%s&wd=w%03d", worldSelectUrl, context.worldId));
-		logger.debug(context.webClient.getCookieManager().getCookies());
-
-		//check if page load succeed in a hacky way.
-		if (page.getElementById("wood") == null) {
-			return false;
-		}
-
+		HtmlPage page = context.auth.loginToWorldWithRetry(context.worldId);
+		
 		wood = Long.parseLong(page.getElementById("wood").getTextContent());
 		woodMax = Long.parseLong(page.getElementById("wood_max").getTextContent());
 		cloth = Long.parseLong(page.getElementById("stone").getTextContent());
@@ -73,24 +53,25 @@ public class World {
 		wheat = Long.parseLong(page.getElementById("rice").getTextContent());
 		wheatMax = Long.parseLong(page.getElementById("rice_max").getTextContent());		
 
-		updateVillageIds(page);
+		getVillageIds(page);
 
 		HtmlMap mapOverlayMap = (HtmlMap)page.getElementById("mapOverlayMap");		
 		VillageMap map = VillageMap.createVillageMapFromHtmlMapElement(mapOverlayMap);
 		map.displayVillageMap();	
-
-		return true;
+		
 	}
 
-	public void updateVillageIds(HtmlPage page) throws IOException {
-		HtmlAnchor otherVillage = parseVillageIds(page);
+	public static List<Long> getVillageIds(HtmlPage page) throws IOException {
+		Set<Long> villageIds = new HashSet<Long>();
+		HtmlAnchor otherVillage = parseVillageIds(page, villageIds);
 		if (otherVillage != null) {
 			HtmlPage otherPage = otherVillage.click();
-			parseVillageIds(otherPage);
+			parseVillageIds(otherPage, villageIds);
 		}
+		return new ArrayList<Long> (villageIds);
 	}
 
-	private HtmlAnchor parseVillageIds(HtmlPage page) {
+	private static HtmlAnchor parseVillageIds(HtmlPage page, Set<Long> villageIds) {
 		HtmlAnchor someVillage = null;
 
 		HtmlDivision villagesDiv = (HtmlDivision)page.getFirstByXPath("//div[@class='sideBoxInner basename']");
@@ -100,7 +81,7 @@ public class World {
 			for (int i = 0; i < params.length; i++) {
 				String[] arg = params[i].split("=");
 				if (arg.length >= 2 && arg[0].equals("village_id")) {
-					logger.info(arg[1]);
+					villageIds.add(Long.parseLong(arg[1]));
 					someVillage = (HtmlAnchor) anchor;
 				}
 			}
@@ -113,13 +94,7 @@ public class World {
 		return generals;
 	}
 
-	public List<Village> getVillages() {
-		return villages;
-	}
-
-	public GeneralMarket getGeneralMarket() {
-		return null;
-	}
+	
 
 	public VillageMap getVillageMap() {
 		return null;

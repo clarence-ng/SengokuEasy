@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Logger;
 import org.kohsuke.args4j.CmdLineException;
@@ -21,20 +22,22 @@ import com.gargoylesoftware.htmlunit.html.HtmlRadioButtonInput;
 import com.gargoylesoftware.htmlunit.html.HtmlSpan;
 import com.gargoylesoftware.htmlunit.html.HtmlTable;
 
-public class DoMissionTask extends AbstractTask {
+public class DoMissionTask extends AbstractTask<Boolean> {
 
 	private static final Logger logger = Logger.getLogger(DoMissionTask.class);
 
-	private final long villageId;
+	private final String villageId;
 	private final Mission mission;
 
-	public DoMissionTask(Context context, long villageId, Mission mission) {
+	public DoMissionTask(Context context, String villageId, Mission mission) {
 		super(context);
 		this.villageId = villageId;
 		this.mission = mission;
 	}
 
 	public static final class Args {
+		@Option(name="-w")
+		public Long worldId;
 		@Option(name="-v", required=true)
 		public long villageId;
 		@Option(name="-r")
@@ -55,12 +58,30 @@ public class DoMissionTask extends AbstractTask {
 		}
 		public Mission mission;
 	}
-	
+
 	@Override
-	public void run() {
-		try {
+	public Boolean call() throws Exception {
+		try {				
+//			HtmlPage groupPage = (HtmlPage) context.getPage(context.getBaseUrl()
+//					+ String.format("/card/deck.php?ano=0&dmo=nomal&p=1&myselect="));
+//			
+//			Object leader = groupPage.getFirstByXPath("//div[@id='ig_bg_decksection1right']//div[@class='ig_deck_unitdata_leader']");
+//			if (leader != null) {
+//				
+//				Object groupLoc = groupPage.getFirstByXPath("//div[@id='ig_bg_decksection1right']//div[@class='ig_deck_unitdata_assign deck_wide_select']");
+//				//新本拠地
+//				
+//				List<?> members = groupPage.getByXPath("//div[@id='ig_bg_decksection1right']//div[@class='g_deck_unitdata_subleader']");
+//				if (members.size() < 3) {
+//					
+//				}
+//				
+//
+//			}
+
+
 			HtmlPage p = (HtmlPage) context.getPage(context.getBaseUrl()
-					+ String.format("/village_change.php?village_id=%d&from=menu&page=/facility/dungeon.php", villageId));
+					+ String.format("/village_change.php?village_id=%s&from=menu&page=/facility/dungeon.php", villageId));
 
 			HtmlForm form = (HtmlForm) p.getElementById("dungeon_input_form");
 			SengokuEasy.debug(form, 0, logger);
@@ -73,12 +94,14 @@ public class DoMissionTask extends AbstractTask {
 						missionbuttons.put(m, (HtmlRadioButtonInput) e2); 
 						m++;
 					} else if (e2 instanceof HtmlSpan) {
-						logger.debug(e2.getTextContent());
+						if (logger.isDebugEnabled()) {
+							logger.debug(e2.getTextContent());
+						}
 					}
 				}
 			}
 
-			Map<String,List<General>> teams = new HashMap<String, List<General>>();
+			final Map<String,List<General>> teams = new HashMap<String, List<General>>();
 			Map<String,HtmlRadioButtonInput> teamGoButtons = new HashMap<String, HtmlRadioButtonInput>();
 
 			for (HtmlElement e : form.getElementsByTagName("table")) {
@@ -93,7 +116,9 @@ public class DoMissionTask extends AbstractTask {
 							teamGoButtons.put(teamName, (HtmlRadioButtonInput) e2);
 						} else if (e2 instanceof HtmlAnchor && !e2.getTextContent().contains("-")) {
 							//Parse generals within the team
-							logger.debug(e2.getTextContent().trim());
+							if (logger.isDebugEnabled()) {
+								logger.debug(e2.getTextContent().trim());
+							}
 							generals.add(new General(e2.getTextContent().trim()));
 						} 
 					}
@@ -101,7 +126,9 @@ public class DoMissionTask extends AbstractTask {
 					int h = 0;
 					for (HtmlElement e2 : itr.next().getAllHtmlChildElements()){
 						if (e2 instanceof HtmlSpan && !e2.getTextContent().contains("-")) {
-							logger.debug(e2.getTextContent().trim());
+							if (logger.isDebugEnabled()) {
+								logger.debug(e2.getTextContent().trim());
+							}
 							int hp = Integer.parseInt(e2.getTextContent().trim());
 							generals.get(h).setHp(hp);
 							h++;
@@ -110,13 +137,17 @@ public class DoMissionTask extends AbstractTask {
 					teams.put(teamName, generals);
 				} 
 			}
-			
+
 			HtmlDivision buttonDiv = form.getFirstByXPath("//div[@class='btnarea']");
-			logger.debug(teams);
+			if (logger.isDebugEnabled()) {
+				logger.debug(teams);
+			}
 
 			long minHp = Long.parseLong(context.properties.getProperty("minMissionHp").trim());
 
-			for (Map.Entry<String, HtmlRadioButtonInput> goableTeam : teamGoButtons.entrySet()) {
+			final AtomicBoolean hasSent = new AtomicBoolean();
+
+			for (final Map.Entry<String, HtmlRadioButtonInput> goableTeam : teamGoButtons.entrySet()) {
 				boolean allHealthy = true;
 				for (General general: teams.get(goableTeam.getKey())) {
 					if (general.getHp() < minHp) {
@@ -136,20 +167,28 @@ public class DoMissionTask extends AbstractTask {
 						@Override
 						public boolean handleConfirm(Page arg0, String arg1) {
 							logger.info("Confirmed sending.");
+							hasSent.set(true);
+							StringBuilder sb = new StringBuilder();
+							for (String k : teams.keySet()) {
+								sb.append(teams.get(k)).append("\n");
+							}
 							return true;
 						}
 					});
-					
+
 					((HtmlAnchor) buttonDiv.getChildElements().iterator().next()).click();
-					
+
 					context.webClient.waitForBackgroundJavaScript(2500L);
 				}
 			}
-			
-			logger.info("Did not send anyone. Threshold:" + minHp + " Teams:" + teams);
+
+			if (!hasSent.get()) {
+				logger.info("Did not send anyone. Threshold:" + minHp + " Teams:" + teams);
+			}
 		} catch(Exception e) {
-			logger.error("Error executing doMission", e);
+			logger.info("throw", e);
 		}
+		return true;
 	}
 
 }
